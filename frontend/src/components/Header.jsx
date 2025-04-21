@@ -11,15 +11,15 @@ const Header = () => {
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <div className="flex items-center space-x-2">
-            <img src={logo} alt="logo" />
-            <span className="text-blue-600 font-bold text-lg mb-3">Skills Crafters</span>
+            <img src={logo} alt="logo" className="h-8 w-auto" />
+            <span className="text-blue-600 font-bold text-lg">Skills Crafters</span>
           </div>
 
           {/* Navigation Desktop */}
           <nav className="hidden md:flex items-center space-x-6 font-medium">
-            <Link to="#" className="text-gray-600 hover:text-blue-600">Projets</Link>
-            <Link to="#" className="text-gray-600 hover:text-blue-600">Freelances</Link>
-            <Link to="#" className="text-gray-600 hover:text-blue-600">À propos</Link>
+            <Link to="#" className="text-gray-600 hover:text-blue-600 transition duration-300">Projets</Link>
+            <Link to="#" className="text-gray-600 hover:text-blue-600 transition duration-300">Freelances</Link>
+            <Link to="#" className="text-gray-600 hover:text-blue-600 transition duration-300">À propos</Link>
 
             <div className="flex items-center space-x-4 ml-6">
               <input 
@@ -27,10 +27,10 @@ const Header = () => {
                 placeholder="Rechercher..." 
                 className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
-              <Link to="#" className="text-gray-600 hover:text-gray-900 hover:bg-blue-600 transition">Connexion</Link>
+              <Link to="#" className="text-gray-600 hover:text-gray-900 transition duration-300">Connexion</Link>
               <Link 
                 to="#" 
-                className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition"
+                className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition duration-300"
               >
                 Inscription
               </Link>
@@ -61,11 +61,11 @@ const Header = () => {
 
         {/* Mobile Menu */}
         {isMenuOpen && (
-          <div className="md:hidden mt-2 bg-white/95 backdrop-blur-sm border-t border-gray-200 px-4 py-4 rounded-b-lg shadow">
+          <div className="md:hidden mt-2 bg-white/95 backdrop-blur-sm border-t border-gray-200 px-4 py-6 rounded-b-lg shadow-lg">
             <div className="flex flex-col space-y-4">
-              <Link to="#" className="text-gray-700 hover:text-blue-700">Projets</Link>
-              <Link to="#" className="text-gray-700 hover:text-blue-700">Freelances</Link>
-              <Link to="#" className="text-gray-700 hover:text-blue-700">À propos</Link>
+              <Link to="#" className="text-gray-700 hover:text-blue-700 transition">Projets</Link>
+              <Link to="#" className="text-gray-700 hover:text-blue-700 transition">Freelances</Link>
+              <Link to="#" className="text-gray-700 hover:text-blue-700 transition">À propos</Link>
 
               <input 
                 type="text" 
@@ -74,7 +74,7 @@ const Header = () => {
               />
 
               <div className="flex flex-col space-y-2 pt-4">
-                <Link to="#" className="text-gray-600 hover:text-blue-700 text-center">Connexion</Link>
+                <Link to="#" className="text-gray-600 hover:text-blue-700 text-center transition">Connexion</Link>
                 <Link 
                   to="#" 
                   className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 text-center transition"
