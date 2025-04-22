@@ -20,62 +20,129 @@ export default function Home() {
     return () => clearInterval(interval); // Nettoyage
   }, []);
 
-  // Données pour les projets en vedette
-  const projets = [
+  // Données pour les projets en vedette avec timestamps réels
+  const [projets, setProjets] = useState([
     {
       titre: "Développement d'une application web e-commerce",
       description: "Création d'une application web complète avec panier, paiement et gestion des produits.",
       budget: "500000-1000000 Fcfa",
       tags: ["React", "Node.js", "MongoDB"],
-      date: "Il y a 2 jours",
+      createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), // 2 days ago
     },
     {
       titre: "Design d'une identité visuelle pour startup",
       description: "Création de logo, charte graphique et éléments visuels pour une startup dans le domaine de la santé.",
       budget: "300000-500000 Fcfa",
       tags: ["Design graphique", "Branding", "Illustrator"],
-      date: "Il y a 3 jours",
+      createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000), // 3 days ago
     },
     {
       titre: "Rédaction de contenu SEO pour site web",
       description: "Rédaction de 20 articles optimisés SEO pour un site web dans le domaine de la technologie.",
       budget: "150000-250000 Fcfa",
       tags: ["Rédaction web", "SEO", "Marketing de contenu"],
-      date: "Il y a 1 jour",
+      createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000), // 1 day ago
     },
-  ];
+  ]);
 
-  // Données pour les freelances populaires
-  const freelances = [
+  // Fonction pour formater les dates en temps relatif
+  const formatRelativeTime = (date) => {
+    const now = new Date();
+    const diffInSeconds = Math.floor((now - date) / 1000);
+    const diffInMinutes = Math.floor(diffInSeconds / 60);
+    const diffInHours = Math.floor(diffInMinutes / 60);
+    const diffInDays = Math.floor(diffInHours / 24);
+
+    if (diffInDays > 0) {
+      return `Il y a ${diffInDays} jour${diffInDays > 1 ? 's' : ''}`;
+    } else if (diffInHours > 0) {
+      return `Il y a ${diffInHours} heure${diffInHours > 1 ? 's' : ''}`;
+    } else if (diffInMinutes > 0) {
+      return `Il y a ${diffInMinutes} minute${diffInMinutes > 1 ? 's' : ''}`;
+    } else {
+      return 'À l\'instant';
+    }
+  };
+
+  // Mise à jour des timestamps en temps réel
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setProjets(currentProjets => [...currentProjets]); // Forcer une mise à jour
+    }, 60000); // Rafraîchir chaque minute
+    return () => clearInterval(interval);
+  }, []);
+
+  // Données pour les freelances populaires avec état pour les notes dynamiques
+  const [freelances, setFreelances] = useState([
     {
+      id: 1,
       nom: "Manix Yotto",
       titre: "Développeuse Full Stack",
       note: 4.9,
       avis: 48,
       skills: ["React", "Node.js", "MongoDB"],
+      avatarUrl: "https://randomuser.me/api/portraits/women/12.jpg"
     },
     {
+      id: 2,
       nom: "Aimé Poka",
       titre: "Designer UX/UI",
       note: 4.8,
       avis: 36,
       skills: ["Figma", "Adobe XD", "Sketch"],
+      avatarUrl: "https://randomuser.me/api/portraits/men/22.jpg"
     },
     {
-      nom: "Rédactrice Web & SEO",
-      titre: "",
+      id: 3,
+      nom: "Sarah Kamdem",
+      titre: "Rédactrice Web & SEO",
       note: 4.7,
       avis: 52,
       skills: ["Copywriting", "SEO", "Marketing de contenu"],
+      avatarUrl: "https://randomuser.me/api/portraits/women/34.jpg"
     },
     {
+      id: 4,
       nom: "Mario Fotso",
       titre: "Développeur Mobile",
       note: 4.9,
       avis: 41,
       skills: ["React Native", "Flutter", "Swift"],
+      avatarUrl: "https://randomuser.me/api/portraits/men/32.jpg"
     },
-  ];
+  ]);
+
+  // Fonction pour simuler l'ajout d'un nouvel avis (pour démonstration)
+  const ajouterAvis = (freelanceId, nouvelleNote) => {
+    setFreelances(prevFreelances => {
+      return prevFreelances.map(freelance => {
+        if (freelance.id === freelanceId) {
+          const totalAvis = freelance.avis + 1;
+          const ancienneNote = freelance.note * freelance.avis;
+          const nouvelleNoteGlobale = ((ancienneNote + nouvelleNote) / totalAvis).toFixed(1);
+          
+          return {
+            ...freelance,
+            note: parseFloat(nouvelleNoteGlobale),
+            avis: totalAvis
+          };
+        }
+        return freelance;
+      });
+    });
+  };
+
+  // Effet de démonstration pour la mise à jour des notes (simule des avis aléatoires)
+  useEffect(() => {
+    // Simule l'ajout d'un nouvel avis toutes les 30 secondes (pour démonstration)
+    const interval = setInterval(() => {
+      const randomFreelanceId = Math.floor(Math.random() * freelances.length) + 1;
+      const randomNote = Math.floor(Math.random() * 5) + 1; // Note entre 1 et 5
+      ajouterAvis(randomFreelanceId, randomNote);
+    }, 30000);
+    
+    return () => clearInterval(interval);
+  }, [freelances]);
 
   // Données pour les avis utilisateurs
   const temoignages = [
@@ -83,16 +150,16 @@ export default function Home() {
       nom: "Marie Dogmo",
       role: "Fondatrice, TechStart",
       texte: "J'ai trouvé le freelance parfait pour mon projet en seulement 2 jours. La qualité du travail était exceptionnelle !",
-      image: null,
+      image: "https://randomuser.me/api/portraits/women/22.jpg",
     },
     {
-      nom: "Manix Yotto",
+      nom: "Pierre Lambert",
       role: "Développeur Indépendant",
       texte: "En tant que freelance, cette plateforme m'a permis de trouver des clients sérieux et des projets intéressants.",
       image: "https://randomuser.me/api/portraits/men/32.jpg",
     },
     {
-      nom: "Julie Kouam",
+      nom: "Julie Moreau",
       role: "Designer Freelance",
       texte: "Le système de paiement sécurisé me donne confiance à chaque transaction. Je recommande vivement !",
       image: "https://randomuser.me/api/portraits/women/44.jpg",
@@ -191,7 +258,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Section Projets en vedette */}
+      {/* Section Projets en vedette - avec timestamps dynamiques */}
       <section className="bg-gray-50 py-12 px-4 md:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="flex justify-between items-center mb-8">
@@ -227,7 +294,7 @@ export default function Home() {
                   </div>
                 </div>
                 <div className="flex justify-between items-center text-sm text-gray-500">
-                  <span>{projet.date}</span>
+                  <span>{formatRelativeTime(projet.createdAt)}</span>
                   <a href="#" className="text-blue-600 hover:text-blue-800 font-medium">
                     Voir détails
                   </a>
@@ -238,7 +305,7 @@ export default function Home() {
         </div>
       </section>
       
-      {/* Section Freelances populaires */}
+      {/* Section Freelances populaires - avec notes dynamiques */}
       <section className="bg-white py-12 px-4 md:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="flex justify-between items-center mb-8">
@@ -248,19 +315,33 @@ export default function Home() {
             </a>
           </div>
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {freelances.map((freelance, index) => (
+            {freelances.map((freelance) => (
               <div
-                key={index}
+                key={freelance.id}
                 className="bg-gray-50 rounded-xl p-6 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300"
               >
                 <div className="text-center">
+                  {/* Avatar */}
+                  <div className="w-20 h-20 mx-auto mb-4 rounded-full overflow-hidden">
+                    <img 
+                      src={freelance.avatarUrl} 
+                      alt={freelance.nom} 
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  
                   <h3 className="text-lg font-semibold text-gray-900">{freelance.nom}</h3>
                   <p className="text-gray-600">{freelance.titre}</p>
+                  
+                  {/* Système de notation dynamique avec animation */}
                   <div className="flex justify-center items-center gap-1 mt-3 mb-4 text-sm text-gray-700">
                     <span className="text-yellow-500 text-lg">⭐</span>
-                    <span className="font-semibold">{freelance.note}</span>
-                    <span className="text-gray-500">({freelance.avis} avis)</span>
+                    <span className="font-semibold transition-all duration-500 ease-in-out">{freelance.note}</span>
+                    <span className="text-gray-500 transition-all duration-500 ease-in-out">
+                      ({freelance.avis} avis)
+                    </span>
                   </div>
+                  
                   <div className="flex flex-wrap justify-center gap-2 mb-4">
                     {freelance.skills.map((skill, i) => (
                       <span
@@ -295,13 +376,11 @@ export default function Home() {
                 className="bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition duration-300 text-left"
               >
                 <div className="flex items-center gap-4 mb-4">
-                  {avis.image && (
-                    <img
-                      src={avis.image}
-                      alt={avis.nom}
-                      className="w-12 h-12 rounded-full object-cover"
-                    />
-                  )}
+                  <img
+                    src={avis.image}
+                    alt={avis.nom}
+                    className="w-12 h-12 rounded-full object-cover"
+                  />
                   <div>
                     <p className="font-semibold text-gray-900">{avis.nom}</p>
                     <p className="text-sm text-gray-500">{avis.role}</p>
