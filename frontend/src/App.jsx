@@ -1,9 +1,8 @@
 import { Routes, Route,BrowserRouter as Router } from 'react-router-dom'
 import Home from './pages/Home'
 import MainLayout from './Layouts/MainLayout';
-
-// import signin from './pages/signin'
-// import signup from './pages/signup'
+import Login from './pages/login';
+import Logout from './pages/logout';
 // import profilfreelance from './pages/profilfreelance'
 // import profilclient from './pages/profilclient'
 // import dashboardfreelance from './pages/dashboardfreelance'
@@ -16,9 +15,12 @@ import MainLayout from './Layouts/MainLayout';
 
 const App = () => {
   return (
+    
     <Routes>
       <Route element={<MainLayout />} >
       <Route path="/" element={<Home />} />
+      <Route path="/connexion" element={<Login />} />
+      <Route path="/inscription" element={<Logout />} />
       </Route>
       
     </Routes>
