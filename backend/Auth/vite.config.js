@@ -10,4 +10,12 @@ export default defineConfig({
         }),
         tailwindcss(),
     ],
+
+
 });
+
+laravel({
+    input: ['resources/js/app.jsx'],
+    refresh: true,
+  });
+

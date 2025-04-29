@@ -22,6 +22,15 @@ class User extends Authenticatable
         'email',
         'password',
         'user_type',
+        'title',
+        'location',
+        'rating',
+        'review_count',
+        'projects_completed',
+        'member_since',
+        'daily_rate',
+        'about',
+        'is_available',
     ];
 
     /**
@@ -42,5 +51,42 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
+        'member_since' => 'date',
+        'is_available' => 'boolean',
     ];
+
+    public function skills()
+    {
+        return $this->hasMany(Skill::class);
+    }
+
+    public function languages()
+    {
+        return $this->hasMany(Language::class);
+    }
+
+    public function education()
+    {
+        return $this->hasMany(Education::class);
+    }
+
+    public function certifications()
+    {
+        return $this->hasMany(Certification::class);
+    }
+
+    public function portfolioProjects()
+    {
+        return $this->hasMany(PortfolioProject::class);
+    }
+
+    public function getMemberSinceFormatAttribute()
+    {
+        return $this->member_since->translatedFormat('F Y');
+    }
+
+    public function getDailyRateFormattedAttribute()
+    {
+        return number_format($this->daily_rate, 0, ',', ' ') . 'FCFA/Jour';
+    }
 }
