@@ -3,7 +3,8 @@ import Home from './pages/Home'
 import MainLayout from './Layouts/MainLayout';
 import Login from './pages/Login';
 import SignupPage from './pages/SignupPage';
-// import profilfreelance from './pages/profilfreelance'
+import { AuthProvider } from './contexts/AuthContext';
+import Profilfreelance from './pages/profilfreelance'
 // import profilclient from './pages/profilclient'
 // import dashboardfreelance from './pages/dashboardfreelance'
 // import dashboardclient from './pages/dashboardclient'
@@ -15,15 +16,19 @@ import SignupPage from './pages/SignupPage';
 
 const App = () => {
   return (
-    
+    <>
+   <AuthProvider>
     <Routes>
       <Route element={<MainLayout />} >
       <Route path="/" element={<Home />} />
       <Route path="/connexion" element={<Login />} />
       <Route path="/inscription" element={<SignupPage />} />
+      <Route path="/profilfreelance" element={<Profilfreelance />} />
       </Route>
       
     </Routes>
+    </AuthProvider>
+    </>
   )
 }
 

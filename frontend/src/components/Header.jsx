@@ -1,9 +1,24 @@
-import { Link } from 'react-router-dom';
-import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
 import logo from '../assets/images/logo.svg';
+import { useAuth } from '../contexts/AuthContext';
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { currentUser, isAuthenticated, logout, loading } = useAuth();
+  const navigate = useNavigate();
+
+  // Fermer le menu lors de la déconnexion
+  useEffect(() => {
+    if (!isAuthenticated) setIsMenuOpen(false);
+  }, [isAuthenticated]);
+
+  const handleLogout = () => {
+    logout();
+    navigate('/');
+  };
+
+  if (loading) return null; // Ou loader pendant le chargement initial
 
   return (
     <header className="fixed top-0 w-full bg-white/80 backdrop-blur-sm z-50 border-b border-gray-200/50">
@@ -27,13 +42,33 @@ const Header = () => {
                 placeholder="Rechercher..." 
                 className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
-              <Link to="#" className="text-gray-600 hover:text-gray-900 transition duration-300">Connexion</Link>
-              <Link 
-                to="#" 
-                className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition duration-300"
-              >
-                Inscription
-              </Link>
+              
+              {isAuthenticated ? (
+                <div className="flex items-center space-x-3">
+                  <Link to="/profil" className="text-gray-600 hover:text-gray-900 transition duration-300 flex items-center">
+                    <span className="text-xl mr-1">👤</span>
+                    <span>{currentUser?.firstName || 'Profil'}</span>
+                  </Link>
+                  <button 
+                    onClick={handleLogout}
+                    className="bg-red-500 text-white px-3 py-1.5 rounded-lg hover:bg-red-600 transition duration-300"
+                  >
+                    Déconnexion
+                  </button>
+                </div>
+              ) : (
+                <>
+                  <Link to="/connexion" className="text-gray-600 hover:text-gray-900 transition duration-300">
+                    Connexion
+                  </Link>
+                  <Link 
+                    to="/inscription" 
+                    className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition duration-300"
+                  >
+                    Inscription
+                  </Link>
+                </>
+              )}
             </div>
           </nav>
 
@@ -73,14 +108,33 @@ const Header = () => {
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
 
-              <div className="flex flex-col space-y-2 pt-4">
-                <Link to="#" className="text-gray-600 hover:text-blue-700 text-center transition">Connexion</Link>
-                <Link 
-                  to="#" 
-                  className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 text-center transition"
-                >
-                  Inscription
-                </Link>
+              <div className="flex flex-col space-y-3 pt-4">
+                {isAuthenticated ? (
+                  <>
+                    <Link to="/profil" className="flex items-center justify-center space-x-2 text-gray-700 hover:text-blue-700 py-2 border border-gray-300 rounded-lg transition">
+                      <span className="text-xl">👤</span>
+                      <span>{currentUser?.firstName || 'Profil'}</span>
+                    </Link>
+                    <button 
+                      onClick={handleLogout}
+                      className="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 text-center transition"
+                    >
+                      Déconnexion
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <Link to="/connexion" className="text-gray-600 hover:text-blue-700 text-center py-2 border border-gray-300 rounded-lg transition">
+                      Connexion
+                    </Link>
+                    <Link 
+                      to="/inscription" 
+                      className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 text-center transition"
+                    >
+                      Inscription
+                    </Link>
+                  </>
+                )}
               </div>
             </div>
           </div>

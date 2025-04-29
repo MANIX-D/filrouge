@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { FaGoogle, FaFacebook, FaEye, FaEyeSlash } from 'react-icons/fa';
 import authService from '../services/authService';
 
@@ -9,16 +10,20 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setLoading(true);
     
+    
     try {
       // Appel du service d'authentification
       const userData = await authService.login(email, password, rememberMe);
       console.log('Connexion réussie:', userData);
+      navigate ('/');
+      
       
       // Redirection ou mise à jour de l'état de l'application
       // window.location.href = '/dashboard';
