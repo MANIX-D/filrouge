@@ -4,7 +4,8 @@ const ProfilePage = () => {
   const [isCurrentUser, setIsCurrentUser] = useState(false);
   const [isAvailable, setIsAvailable] = useState(true);
   const [profile, setProfile] = useState({
-    name: "Manix Yotto",
+    first_name: "Manix",
+    last_name: "Yotto",
     title: "Développeuse Full Stack",
     location: "Douala, Cameroun",
     rating: 4.9,
@@ -81,7 +82,10 @@ const ProfilePage = () => {
         <div className="bg-white rounded-lg shadow-md p-6 mb-6 transform transition-all duration-300 hover:shadow-lg">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
             <div>
-              <h1 className="text-2xl font-bold mb-1">{profile.name}</h1>
+             <div className='flex flex-row space-x-2'>
+                 <h1 className="text-2xl font-bold mb-1">{profile.first_name}</h1>
+                 <h1 className="text-2xl font-bold mb-1">{profile.last_name}</h1>
+             </div>
               <p className="text-gray-600 mb-2">{profile.title}</p>
               
               <div className="flex items-center mb-2">

@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaGoogle, FaFacebook, FaEye, FaEyeSlash } from 'react-icons/fa';
-import authService from '../services/authService';
+// import authService from '../services/authService';
+import { useAuth } from '../contexts/AuthContext';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -12,6 +13,7 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
+  const {login} = useAuth();
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
@@ -20,8 +22,8 @@ export default function Login() {
     
     try {
       // Appel du service d'authentification
-      const userData = await authService.login(email, password, rememberMe);
-      console.log('Connexion réussie:', userData);
+      // const userData = await authService.login(email, password, rememberMe);
+      const userData = await login({email, password, rememberMe});
       navigate ('/');
       
       

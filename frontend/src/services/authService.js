@@ -8,6 +8,7 @@ const authService = {
   // Configuration de l'axios pour inclure les cookies
   setupAxios() {
     axios.defaults.withCredentials = true;
+    axios.defaults.withXSRFToken = true;
   },
 
   // Récupérer le CSRF token
@@ -21,7 +22,8 @@ const authService = {
     await this.getCsrfToken();
     const response = await axios.post(`${API_URL}/register`, userData);
     if (response.data.token) {
-      localStorage.setItem('user', JSON.stringify(response.data));
+      localStorage.setItem('user', JSON.stringify(response.data.user));
+      localStorage.setItem('token', JSON.stringify(response.data.token));
     }
     return response.data;
   },
@@ -36,7 +38,8 @@ const authService = {
       remember_me: rememberMe
     });
     if (response.data.token) {
-      localStorage.setItem('user', JSON.stringify(response.data));
+      localStorage.setItem('user', JSON.stringify(response.data.user));
+      localStorage.setItem('token', JSON.stringify(response.data.token));
     }
     return response.data;
   },
@@ -61,7 +64,9 @@ const authService = {
 
   // Récupérer l'utilisateur connecté
   getCurrentUser() {
-    return JSON.parse(localStorage.getItem('user'));
+    const user = JSON.parse(localStorage.getItem('user'));
+    user.firstName = user.first_name;
+    return user;
   },
 
   // Récupérer les informations de l'utilisateur

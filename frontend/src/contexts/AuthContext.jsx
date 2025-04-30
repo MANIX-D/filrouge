@@ -1,10 +1,12 @@
 import { createContext, useState, useEffect, useContext } from 'react';
 import authService from '../services/authService';
+import axios from 'axios';
+
 
 export const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  const [currentUser, setCurrentUser] = useState(null);
+  const [currentUser, setCurrentUser] = useState();
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -17,10 +19,11 @@ export const AuthProvider = ({ children }) => {
         }
 
         const userData = await authService.getCurrentUser();
+        
         setCurrentUser({
-          id: userData.id,
-          firstName: userData.firstName,
-          email: userData.email,
+          id: userData?.id || 0,
+          firstName: userData?.firstName || 'no name',
+          email: userData?.email || 'no email',
           // Ajoutez d'autres propriétés nécessaires
         });
       } catch (error) {
@@ -33,22 +36,38 @@ export const AuthProvider = ({ children }) => {
 
     checkAuthState();
   }, []);
-
+  
   const login = async (credentials) => {
     try {
-      const { user, token } = await authService.login(credentials);
-      localStorage.setItem('token', token);
+      const { user } = await authService.login(credentials.email, credentials.password, credentials.rememberMe);
       setCurrentUser({
         id: user.id,
-        firstName: user.firstName,
+        firstName: user.first_name,
         email: user.email
       });
-      return true;
+      return user;
     } catch (error) {
       console.error('Échec de la connexion:', error);
       return false;
     }
   };
+
+
+  const register = async (userData) => {
+    try {
+      const { user } = await authService.register(userData);
+      setCurrentUser({
+        id: user.id,
+        firstName: user.first_name,
+        email: user.email
+      });
+      return user;
+    } catch (error) {
+      console.error("Échec de l'enregistrement:", error);
+      return false;
+    }
+  };
+
 
   const logout = () => {
     localStorage.removeItem('token');
@@ -67,8 +86,9 @@ export const AuthProvider = ({ children }) => {
 const value = {
   currentUser,
   loading,
-  isAuthenticated: !!currentUser && !loading, 
+  isAuthenticated: !!currentUser, 
   login,
+  register,
   logout
 };
 

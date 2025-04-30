@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { FaCheck } from 'react-icons/fa';
-import authService from '../services/authService';
+// import authService from '../services/authService';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 
 export default function SignupPage() {
   const [userType, setUserType] = useState('client');
@@ -18,6 +19,7 @@ export default function SignupPage() {
   const [confirmPasswordVisible, setConfirmPasswordVisible] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const {register} = useAuth();
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -56,9 +58,9 @@ export default function SignupPage() {
       };
       
       // Appel du service d'authentification
-      const userData = await authService.register(registerData);
-      navigate ('/');
+      const userData = await register(registerData);
       console.log('Inscription réussie:', userData);
+      navigate ('/');
       
       // Redirection ou mise à jour de l'état de l'application
       // window.location.href = '/dashboard';
