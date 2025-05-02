@@ -17,6 +17,7 @@ return new class extends Migration
             $table->string('name');
             $table->string('organization');
             $table->string('year');
+            $table->string('url')->nullable();
             $table->timestamps();
         });
     }

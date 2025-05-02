@@ -31,6 +31,9 @@ class User extends Authenticatable
         'daily_rate',
         'about',
         'is_available',
+        'professional_title',
+        'bio',
+        'profile_picture',
     ];
 
     /**
@@ -54,6 +57,15 @@ class User extends Authenticatable
         'member_since' => 'date',
         'is_available' => 'boolean',
     ];
+
+        /**
+     * Déterminer si l'utilisateur est un freelance.
+     */
+    public function isFreelance()
+    {
+        return $this->user_type === 'freelance';
+    }
+
 
     public function skills()
     {
