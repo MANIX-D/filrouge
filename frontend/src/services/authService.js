@@ -13,7 +13,9 @@ const authService = {
 
   // Récupérer le CSRF token
   async getCsrfToken() {
-    await axios.get('http://localhost:8000/sanctum/csrf-cookie');
+    await axios.get('http://localhost:8000/sanctum/csrf-cookie', {
+      withCredentials: true
+    });
   },
 
   // Inscription d'un utilisateur
@@ -36,10 +38,12 @@ const authService = {
       email,
       password,
       remember_me: rememberMe
+    }, {
+      withCredentials: true
     });
     if (response.data.token) {
       localStorage.setItem('user', JSON.stringify(response.data.user));
-      localStorage.setItem('token', JSON.stringify(response.data.token));
+      localStorage.setItem('token', response.data.token);
     }
     return response.data;
   },

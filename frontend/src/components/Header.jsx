@@ -89,7 +89,7 @@ const Header = () => {
                     {isUserMenuOpen && (
                       <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 z-10 border border-gray-200">
                         <Link 
-                          to="/profil" 
+                          to="/profil-freelance" 
                           className="block px-4 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition"
                         >
                           Profil
@@ -189,7 +189,7 @@ const Header = () => {
                       {isUserMenuOpen && (
                         <div className="bg-gray-50 border-t border-gray-200">
                           <Link 
-                            to="/profil" 
+                            to="/profil-freelance" 
                             className="block px-4 py-2 text-gray-700 hover:bg-gray-100 hover:text-blue-600 transition"
                           >
                             Profil

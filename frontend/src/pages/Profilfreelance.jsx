@@ -1,79 +1,124 @@
 import { useState, useEffect } from 'react';
+import axios from 'axios';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
+import { toast } from 'react-toastify';
+import API_CONFIG from '../config/api';
 
 const ProfilePage = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
   const [isCurrentUser, setIsCurrentUser] = useState(false);
   const [isAvailable, setIsAvailable] = useState(true);
-  const [profile, setProfile] = useState({
-    first_name: "Manix",
-    last_name: "Yotto",
-    title: "Développeuse Full Stack",
-    location: "Douala, Cameroun",
-    rating: 4.9,
-    reviewCount: 48,
-    projectsCompleted: 21,
-    memberSince: "Janvier 2025",
-    dailyRate: "25000FCFA/Jour",
-    about: "Développeur Full Stack passionné avec plus de 3 ans d'expérience dans la création architectures cloud. J'aime relever des défis techniques et créer des solutions innovantes pour mes clients.",
-    skills: [
-      { name: "React", level: "Expert" },
-      { name: "Node.js", level: "Expert" },
-      { name: "TypeScript", level: "Expert" },
-      { name: "MongoDB", level: "Avancé" },
-      { name: "AWS", level: "Avancé" },
-      { name: "React Native", level: "Intermédiaire" }
-    ],
-    languages: [
-      { name: "Français", level: "Natif" },
-      { name: "Anglais", level: "Intermédiaire" }
-    ],
-    education: [
-      {
-        institution: "Institut Universitaire de la Côte",
-        degree: "licence en Ingénierie Logicielle",
-        year: "2023"
-      }
-    ],
-    certifications: [
-      {
-        name: "AWS Certified Solutions Architect",
-        organization: "Amazon Web Services",
-        year: "2023"
-      }
-    ],
-    portfolio: [
-      {
-        id: 1,
-        title: "Application E-commerce React",
-        description: "Application complète avec panier, paiement et gestion des produits",
-        image: "/api/placeholder/400/320",
-        technologies: ["React", "Node.js", "MongoDB"]
-      },
-      {
-        id: 2,
-        title: "Dashboard",
-        description: "Interface d'analyse de données en temps réel avec graphiques",
-        image: "/api/placeholder/400/320",
-        technologies: ["React", "TypeScript", "D3.js"]
-      },
-      {
-        id: 3,
-        title: "Application Mobile Fitness",
-        description: "Application de suivi d'entraînement et de nutrition",
-        image: "/api/placeholder/400/320",
-        technologies: ["React Native", "Firebase"]
-      }
-    ]
-  });
+  const [profile, setProfile] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  // Simuler la vérification de l'utilisateur actuel
+  // Charger le profil et vérifier si c'est le profil de l'utilisateur actuel
   useEffect(() => {
-    // Dans une application réelle, cela viendrait d'une API
-    setIsCurrentUser(true);
-  }, []);
+    const loadProfile = async () => {
+      try {
+        // Si nous avons des données de profil de la navigation, les utiliser
+        if (location.state?.profile) {
+          console.log('Données du profil depuis la navigation:', location.state.profile);
+          setProfile(location.state.profile);
+          setIsCurrentUser(true);
+          setLoading(false);
+          return;
+        }
+
+        const token = localStorage.getItem('token');
+        if (!token) {
+          navigate('/login');
+          return;
+        }
+
+        // Récupérer le profil de l'utilisateur actuel
+        const response = await axios.get(`${API_CONFIG.baseURL}/api/profile`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        console.log('Réponse de l\'API:', response.data);
+        
+        // Vérifier si nous avons des données valides
+        if (response.data) {
+          setProfile(response.data);
+          setIsCurrentUser(true);
+        } else {
+          toast.error('Données du profil invalides');
+        }
+      } catch (error) {
+        console.error('Erreur de chargement du profil:', error);
+        if (error.response?.status === 401) {
+          toast.error('Session expirée. Veuillez vous reconnecter.');
+          navigate('/login');
+        } else {
+          toast.error('Erreur lors du chargement du profil');
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadProfile();
+  }, [navigate, location.state]);
+
+  // Afficher un message de succès si le profil vient d'être mis à jour
+  useEffect(() => {
+    if (location.state?.justUpdated) {
+      toast.success('Votre profil a été mis à jour avec succès !');
+      // Nettoyer le state pour éviter de remontrer le message
+      navigate(location.pathname, { replace: true });
+    }
+  }, [location.state, navigate, location.pathname]);
 
   const toggleAvailability = () => {
     setIsAvailable(!isAvailable);
   };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-gray-900"></div>
+      </div>
+    );
+  }
+
+  if (!profile) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <p className="text-gray-600">Profil non trouvé</p>
+      </div>
+    );
+  }
+
+  // Vérifier si toutes les sections du profil sont définies
+  const hasCompleteProfile = profile && 
+    profile.first_name && 
+    profile.last_name && 
+    profile.title && 
+    profile.location &&
+    profile.daily_rate &&
+    profile.about &&
+    profile.skills?.length > 0 && 
+    profile.languages?.length > 0 && 
+    profile.education?.length > 0 && 
+    profile.certifications?.length > 0 && 
+    profile.portfolioProjects?.length > 0;
+
+  if (!hasCompleteProfile && isCurrentUser) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen gap-4">
+        <p className="text-gray-600">Votre profil est incomplet.</p>
+        <Link 
+          to="/creation-profil-freelance" 
+          className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+        >
+          Compléter votre profil
+        </Link>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-gray-100 min-h-screen p-4 mt-15">
@@ -131,9 +176,13 @@ const ProfilePage = () => {
             </div>
             
             {isCurrentUser && (
-              <button className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-md mt-4 md:mt-0 transition-colors duration-300">
-                Modifier le profil
-              </button>
+              <Link 
+                to="/creation-profil-freelance" 
+                state={{ profileData: profile }}
+                className="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-md mt-4 md:mt-0 transition-colors duration-300"
+              >
+                Éditer le profil
+              </Link>
             )}
           </div>
         </div>
@@ -150,8 +199,8 @@ const ProfilePage = () => {
             <div className="bg-white rounded-lg shadow-md p-6 mb-6 transform transition-all duration-300 hover:shadow-lg">
               <h2 className="text-xl font-semibold mb-4">Portfolio</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {profile.portfolio.map((project) => (
-                  <div 
+                {profile.portfolioProjects?.map((project) => (
+                   <div 
                     key={project.id} 
                     className="border rounded-lg overflow-hidden transform transition-all duration-300 hover:shadow-lg hover:-translate-y-1"
                   >
@@ -164,12 +213,12 @@ const ProfilePage = () => {
                       <h3 className="font-semibold text-lg mb-2">{project.title}</h3>
                       <p className="text-gray-600 text-sm mb-3">{project.description}</p>
                       <div className="flex flex-wrap gap-2">
-                        {project.technologies.map((tech, index) => (
+                        {project.technologies?.map((tech, index) => (
                           <span 
-                            key={index}
-                            className="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded"
+                            key={index} 
+                            className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full"
                           >
-                            {tech}
+                            {tech.name}
                           </span>
                         ))}
                       </div>
@@ -185,18 +234,11 @@ const ProfilePage = () => {
             <div className="bg-white rounded-lg shadow-md p-6 mb-6 transform transition-all duration-300 hover:shadow-lg">
               <h2 className="text-xl font-semibold mb-4">Compétences</h2>
               <div className="space-y-3">
-                {profile.skills.map((skill, index) => (
-                  <div key={index} className="flex justify-between items-center">
+                {profile.skills?.map((skill, index) => (
+                  <div key={index} className="flex items-center">
+                    <div className="w-2 h-2 rounded-full bg-blue-500 mr-2"></div>
                     <span className="text-gray-700">{skill.name}</span>
-                    <span 
-                      className={`text-sm px-2 py-1 rounded ${
-                        skill.level === 'Expert' ? 'bg-green-100 text-green-800' :
-                        skill.level === 'Avancé' ? 'bg-blue-100 text-blue-800' :
-                        'bg-gray-100 text-gray-800'
-                      }`}
-                    >
-                      {skill.level}
-                    </span>
+                    <span className="ml-2 text-sm text-gray-500">{skill.level}</span>
                   </div>
                 ))}
               </div>
@@ -206,18 +248,11 @@ const ProfilePage = () => {
             <div className="bg-white rounded-lg shadow-md p-6 mb-6 transform transition-all duration-300 hover:shadow-lg">
               <h2 className="text-xl font-semibold mb-4">Langues</h2>
               <div className="space-y-3">
-                {profile.languages.map((language, index) => (
-                  <div key={index} className="flex justify-between items-center">
-                    <span className="text-gray-700">{language.name}</span>
-                    <span 
-                      className={`text-sm px-2 py-1 rounded ${
-                        language.level === 'Natif' ? 'bg-green-100 text-green-800' :
-                        language.level === 'Courant' ? 'bg-blue-100 text-blue-800' :
-                        'bg-gray-100 text-gray-800'
-                      }`}
-                    >
-                      {language.level}
-                    </span>
+                {profile.languages?.map((lang, index) => (
+                  <div key={index} className="flex items-center">
+                    <div className="w-2 h-2 rounded-full bg-green-500 mr-2"></div>
+                    <span className="text-gray-700">{lang.name}</span>
+                    <span className="ml-2 text-sm text-gray-500">{lang.level}</span>
                   </div>
                 ))}
               </div>
@@ -226,7 +261,7 @@ const ProfilePage = () => {
             {/* Formation */}
             <div className="bg-white rounded-lg shadow-md p-6 mb-6 transform transition-all duration-300 hover:shadow-lg">
               <h2 className="text-xl font-semibold mb-4">Formation</h2>
-              {profile.education.map((edu, index) => (
+              {profile.education?.map((edu, index) => (
                 <div key={index} className="mb-3 last:mb-0">
                   <h3 className="font-medium">{edu.institution}</h3>
                   <p className="text-gray-600">{edu.degree}</p>
@@ -238,7 +273,7 @@ const ProfilePage = () => {
             {/* Certifications */}
             <div className="bg-white rounded-lg shadow-md p-6 mb-6 transform transition-all duration-300 hover:shadow-lg">
               <h2 className="text-xl font-semibold mb-4">Certifications</h2>
-              {profile.certifications.map((cert, index) => (
+              {profile.certifications?.map((cert, index) => (
                 <div key={index} className="mb-3 last:mb-0">
                   <h3 className="font-medium">{cert.name}</h3>
                   <p className="text-gray-600">{cert.organization}</p>
