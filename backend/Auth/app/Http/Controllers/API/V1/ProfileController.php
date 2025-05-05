@@ -4,10 +4,15 @@ namespace App\Http\Controllers\API\V1;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Models\Skill;
+use App\Models\Language;
+use App\Models\Education;
+use App\Models\Certification;
+use App\Models\PortfolioProject;
+use App\Models\ProjectTechnology;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
-
 
 class ProfileController extends Controller
 {
@@ -31,27 +36,28 @@ class ProfileController extends Controller
             ]);
         }
 
-        $isCurrentUser = Auth::id() === $user->id;
+        $profile = [
+            'id' => $user->id,
+            'first_name' => $user->first_name,
+            'last_name' => $user->last_name,
+            'title' => $user->title,
+            'location' => $user->location,
+            'daily_rate' => $user->daily_rate,
+            'about' => $user->about,
+            'is_available' => $user->is_available,
+            'skills' => $user->skills,
+            'languages' => $user->languages,
+            'education' => $user->education,
+            'certifications' => $user->certifications,
+            'portfolioProjects' => $user->portfolioProjects
+        ];
 
-        return view('profile.show', compact('user', 'isCurrentUser'));
-    }
-
-    public function edit()
-    {
-        $user = Auth::user()->load([
-            'skills',
-            'languages',
-            'education',
-            'certifications',
-            'portfolioProjects.technologies'
-        ]);
-
-        return view('profile.edit', compact('user'));
+        return response()->json($profile);
     }
 
     public function update(Request $request)
     {
-        $user = Auth::user();
+        $user = $request->user();
 
         $validated = $request->validate([
             'first_name' => 'required|string|max:255',
@@ -60,11 +66,97 @@ class ProfileController extends Controller
             'location' => 'required|string|max:255',
             'daily_rate' => 'required|numeric',
             'about' => 'required|string',
+            'skills' => 'required|string',
+            'languages' => 'required|string',
+            'education' => 'required|string',
+            'certifications' => 'required|string',
+            'portfolioProjects' => 'required|string'
         ]);
 
-        $user->update($validated);
+        // Mettre à jour les informations de base
+        $user->update([
+            'first_name' => $validated['first_name'],
+            'last_name' => $validated['last_name'],
+            'title' => $validated['title'],
+            'location' => $validated['location'],
+            'daily_rate' => $validated['daily_rate'],
+            'about' => $validated['about']
+        ]);
 
-        return redirect()->route('profile.show')->with('success', 'Profil mis à jour avec succès');
+        try {
+            // Skills
+            $user->skills()->delete();
+            $skills = json_decode($validated['skills'], true);
+            foreach ($skills as $skill) {
+                $user->skills()->create(['name' => $skill]);
+            }
+
+            // Languages
+            $user->languages()->delete();
+            $languages = json_decode($validated['languages'], true);
+            foreach ($languages as $language) {
+                $user->languages()->create([
+                    'name' => $language['name'],
+                    'level' => $language['level']
+                ]);
+            }
+
+            // Education
+            $user->education()->delete();
+            $education = json_decode($validated['education'], true);
+            foreach ($education as $edu) {
+                $user->education()->create([
+                    'diploma' => $edu['diploma'],
+                    'school' => $edu['school'],
+                    'year' => $edu['year'],
+                    'description' => $edu['description']
+                ]);
+            }
+
+            // Certifications
+            $user->certifications()->delete();
+            $certifications = json_decode($validated['certifications'], true);
+            foreach ($certifications as $cert) {
+                $user->certifications()->create([
+                    'name' => $cert['name'],
+                    'organization' => $cert['organization'],
+                    'year' => $cert['year'],
+                    'url' => $cert['url']
+                ]);
+            }
+
+            // Portfolio Projects
+            $user->portfolioProjects()->delete();
+            $projects = json_decode($validated['portfolioProjects'], true);
+            foreach ($projects as $project) {
+                $portfolioProject = $user->portfolioProjects()->create([
+                    'user_id' => $user->id,
+                    'title' => $project['title'],
+                    'description' => $project['description'],
+                    'url' => $project['url']
+                ]);
+                
+                if (isset($project['technologies'])) {
+                    foreach ($project['technologies'] as $tech) {
+                        $portfolioProject->technologies()->create([
+                            'name' => $tech
+                        ]);
+                    }
+                }
+            }
+
+            return response()->json([
+                'message' => 'Profile updated successfully',
+                'user' => $user->load(['skills', 'languages', 'education', 'certifications', 'portfolioProjects.technologies'])
+            ]);
+
+        } catch (\Exception $e) {
+            \Log::error('Error updating profile: ' . $e->getMessage());
+            return response()->json([
+                'message' => 'Error updating profile',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
     public function toggleAvailability()

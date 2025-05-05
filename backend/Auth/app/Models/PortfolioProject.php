@@ -9,7 +9,7 @@ class PortfolioProject extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['user_id', 'title', 'description', 'image'];
+    protected $fillable = ['user_id', 'title', 'description', 'image', 'url'];
 
     public function user()
     {
