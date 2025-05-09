@@ -22,11 +22,11 @@ const FreelanceDashboard = () => {
         // Simulation d'une requête API
         setTimeout(() => {
           setFreelanceData({
-            name: "Manix Yotto",
-            totalRevenue: 800750,
-            activeProjects: 4,
-            completedProjects: 23,
-            averageRating: 4.8,
+            name: "MANIX-DOLBY",
+            totalRevenue: 0,
+            activeProjects: 0,
+            completedProjects: 0,
+            averageRating: 0,
             currentProjects: [
               {
                 id: 1,
@@ -36,22 +36,22 @@ const FreelanceDashboard = () => {
                 progress: 65,
                 deadline: "15 Mai 2025"
               },
-              {
-                id: 2,
-                name: "Refonte interface utilisateur",
-                client: "Design Studio",
-                budget: 200000,
-                progress: 30,
-                deadline: "28 Juin 2025"
-              },
-              {
-                id: 3,
-                name: "Application mobile fitness",
-                client: "GymFit",
-                budget: 150000,
-                progress: 45,
-                deadline: "10 Juillet 2025"
-              },
+              // {
+              //   id: 2,
+              //   name: "Refonte interface utilisateur",
+              //   client: "Design Studio",
+              //   budget: 200000,
+              //   progress: 30,
+              //   deadline: "28 Juin 2025"
+              // },
+              // {
+              //   id: 3,
+              //   name: "Application mobile fitness",
+              //   client: "GymFit",
+              //   budget: 150000,
+              //   progress: 45,
+              //   deadline: "10 Juillet 2025"
+              // },
               {
                 id: 4,
                 name: "API de paiement",
@@ -128,14 +128,14 @@ const FreelanceDashboard = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center mt-15">
+      <div className="min-h-screen flex items-center justify-center ">
         <div className="text-lg text-blue-600 font-medium">Chargement du tableau de bord...</div>
       </div>
     );
   }
 
   return (
-    <div className="bg-gray-50 min-h-screen p-4">
+    <div className="bg-gray-50 min-h-screen p-4 mt-15">
       <div className="max-w-7xl mx-auto">
         <h1 className="text-2xl font-bold mb-6">{freelanceData.name}</h1>
         <div className="text-sm text-gray-600 mb-6">Bienvenue ! Voici un aperçu de votre activité.</div>

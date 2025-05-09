@@ -60,7 +60,13 @@ export default function SignupPage() {
       // Appel du service d'authentification
       const userData = await register(registerData);
       console.log('Inscription réussie:', userData);
-      navigate ('/');
+      
+      // Si l'inscription réussit, on redirige vers la création de profil
+      if (userType === 'freelance') {
+        navigate('/');
+      } else {
+        navigate('/dashboard-client');
+      }
       
       // Redirection ou mise à jour de l'état de l'application
       // window.location.href = '/dashboard';

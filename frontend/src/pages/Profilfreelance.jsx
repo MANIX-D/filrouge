@@ -4,11 +4,17 @@ import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import API_CONFIG from '../config/api';
 
+// Fonction pour formater la date
+const formatDate = (dateString) => {
+  const options = { year: 'numeric', month: 'long', day: 'numeric' };
+  return new Date(dateString).toLocaleDateString('fr-FR', options);
+};
+
 const ProfilePage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const [isCurrentUser, setIsCurrentUser] = useState(false);
-  const [isAvailable, setIsAvailable] = useState(true);
+  const [isAvailable, setIsAvailable] = useState(false);
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -27,7 +33,7 @@ const ProfilePage = () => {
 
         const token = localStorage.getItem('token');
         if (!token) {
-          navigate('/login');
+          navigate('/connexion');
           return;
         }
 
@@ -44,6 +50,7 @@ const ProfilePage = () => {
         if (response.data) {
           setProfile(response.data);
           setIsCurrentUser(true);
+          setIsAvailable(response.data.is_available);
         } else {
           toast.error('Données du profil invalides');
         }
@@ -51,7 +58,7 @@ const ProfilePage = () => {
         console.error('Erreur de chargement du profil:', error);
         if (error.response?.status === 401) {
           toast.error('Session expirée. Veuillez vous reconnecter.');
-          navigate('/login');
+          navigate('/connexion');
         } else {
           toast.error('Erreur lors du chargement du profil');
         }
@@ -72,8 +79,28 @@ const ProfilePage = () => {
     }
   }, [location.state, navigate, location.pathname]);
 
-  const toggleAvailability = () => {
-    setIsAvailable(!isAvailable);
+  const toggleAvailability = async () => {
+    if (!isCurrentUser) return;
+
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.post(
+        `${API_CONFIG.baseURL}/api/profile/toggle-availability`,
+        {},
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Accept': 'application/json'
+          }
+        }
+      );
+
+      setIsAvailable(response.data.is_available);
+      toast.success('Statut de disponibilité mis à jour');
+    } catch (error) {
+      console.error('Erreur lors de la mise à jour de la disponibilité:', error);
+      toast.error('Erreur lors de la mise à jour de la disponibilité');
+    }
   };
 
   if (loading) {
@@ -92,33 +119,7 @@ const ProfilePage = () => {
     );
   }
 
-  // Vérifier si toutes les sections du profil sont définies
-  const hasCompleteProfile = profile && 
-    profile.first_name && 
-    profile.last_name && 
-    profile.title && 
-    profile.location &&
-    profile.daily_rate &&
-    profile.about &&
-    profile.skills?.length > 0 && 
-    profile.languages?.length > 0 && 
-    profile.education?.length > 0 && 
-    profile.certifications?.length > 0 && 
-    profile.portfolioProjects?.length > 0;
-
-  if (!hasCompleteProfile && isCurrentUser) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-screen gap-4">
-        <p className="text-gray-600">Votre profil est incomplet.</p>
-        <Link 
-          to="/creation-profil-freelance" 
-          className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
-        >
-          Compléter votre profil
-        </Link>
-      </div>
-    );
-  }
+  // Note: La vérification de complétude du profil a été supprimée
 
   return (
     <div className="bg-gray-100 min-h-screen p-4 mt-15">
@@ -132,6 +133,7 @@ const ProfilePage = () => {
                  <h1 className="text-2xl font-bold mb-1">{profile.last_name}</h1>
              </div>
               <p className="text-gray-600 mb-2">{profile.title}</p>
+              <p className="text-green-600 font-semibold mb-2">${profile.daily_rate} USD/jour</p>
               
               <div className="flex items-center mb-2">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-500" viewBox="0 0 20 20" fill="currentColor">
@@ -159,7 +161,7 @@ const ProfilePage = () => {
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-600" viewBox="0 0 20 20" fill="currentColor">
                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clipRule="evenodd" />
                   </svg>
-                  <span className="ml-1">Membre depuis {profile.memberSince}</span>
+                  <span className="ml-1">Membre depuis {formatDate(profile.created_at)}</span>
                 </div>
               </div>
 
@@ -263,9 +265,10 @@ const ProfilePage = () => {
               <h2 className="text-xl font-semibold mb-4">Formation</h2>
               {profile.education?.map((edu, index) => (
                 <div key={index} className="mb-3 last:mb-0">
-                  <h3 className="font-medium">{edu.institution}</h3>
-                  <p className="text-gray-600">{edu.degree}</p>
+                  <h3 className="font-medium">{edu.school}</h3>
+                  <p className="text-gray-600">{edu.diploma}</p>
                   <p className="text-gray-500 text-sm">{edu.year}</p>
+                  {edu.description && <p className="text-gray-600 mt-1 text-sm">{edu.description}</p>}
                 </div>
               ))}
             </div>

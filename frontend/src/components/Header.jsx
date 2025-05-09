@@ -48,16 +48,16 @@ const Header = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
-          <div className="flex items-center space-x-2">
+          <Link to='/' className="flex items-center space-x-2">
             <img src={logo} alt="logo" className="h-8 w-auto" />
             <span className="text-blue-600 font-bold text-lg">Skills Crafters</span>
-          </div>
+          </Link>
 
           {/* Navigation Desktop */}
           <nav className="hidden md:flex items-center space-x-6 font-medium">
-            <Link to="#" className="text-gray-600 hover:text-blue-600 transition duration-300">Projets</Link>
-            <Link to="#" className="text-gray-600 hover:text-blue-600 transition duration-300">Freelances</Link>
-            <Link to="#" className="text-gray-600 hover:text-blue-600 transition duration-300">À propos</Link>
+            <Link to="projet" className="text-gray-600 hover:text-blue-600 transition duration-300">Projets</Link>
+            <Link to="freelance" className="text-gray-600 hover:text-blue-600 transition duration-300">Freelances</Link>
+            <Link to="about" className="text-gray-600 hover:text-blue-600 transition duration-300">À propos</Link>
 
             <div className="flex items-center space-x-4 ml-6">
               <input 
@@ -95,7 +95,7 @@ const Header = () => {
                           Profil
                         </Link>
                         <Link 
-                          to="/dashboard" 
+                          to="/dashboard-freelance" 
                           className="block px-4 py-2 text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition"
                         >
                           Dashboard

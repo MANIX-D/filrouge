@@ -1,6 +1,11 @@
 import { useEffect, useState } from 'react';
 
 export default function Home() {
+  const [isVisible, setIsVisible] = useState(false);
+
+  useEffect(() => {
+    setIsVisible(true);
+  }, []);
   // Images pour le carrousel hero
   const images = [
     '/images/Headercaroussel1.png',
@@ -77,11 +82,11 @@ export default function Home() {
     {
       id: 1,
       nom: "Manix Yotto",
-      titre: "Développeuse Full Stack",
+      titre: "Développeur Full Stack",
       note: 4.9,
       avis: 48,
       skills: ["React", "Node.js", "MongoDB"],
-      avatarUrl: "https://randomuser.me/api/portraits/women/12.jpg"
+      avatarUrl: "https://randomuser.me/api/portraits/men/83.jpg"
     },
     {
       id: 2,
@@ -99,7 +104,7 @@ export default function Home() {
       note: 4.7,
       avis: 52,
       skills: ["Copywriting", "SEO", "Marketing de contenu"],
-      avatarUrl: "https://randomuser.me/api/portraits/women/34.jpg"
+      avatarUrl: "https://randomuser.me/api/portraits/women/92.jpg"
     },
     {
       id: 4,
@@ -108,7 +113,7 @@ export default function Home() {
       note: 4.9,
       avis: 41,
       skills: ["React Native", "Flutter", "Swift"],
-      avatarUrl: "https://randomuser.me/api/portraits/men/32.jpg"
+      avatarUrl: "https://randomuser.me/api/portraits/men/59.jpg"
     },
   ]);
 
@@ -150,7 +155,7 @@ export default function Home() {
       nom: "Marie Dogmo",
       role: "Fondatrice, TechStart",
       texte: "J'ai trouvé le freelance parfait pour mon projet en seulement 2 jours. La qualité du travail était exceptionnelle !",
-      image: "https://randomuser.me/api/portraits/women/22.jpg",
+      image: "https://randomuser.me/api/portraits/women/69.jpg",
     },
     {
       nom: "Pierre Lambert",
@@ -169,7 +174,7 @@ export default function Home() {
   return (
     <div>
       {/* Section Hero avec carrousel */}
-      <section className="relative h-screen w-full overflow-hidden">
+      <section className="relative h-screen w-full overflow-hidden mt-15">
         {/* Carrousel */}
         {images.map((image, index) => (
           <img
@@ -306,7 +311,7 @@ export default function Home() {
       </section>
       
       {/* Section Freelances populaires - avec notes dynamiques */}
-      <section className="bg-white py-12 px-4 md:px-8">
+      <section className={`py-16 px-4 md:px-8 transition-opacity duration-1000 ${isVisible ? 'opacity-100' : 'opacity-0'}`}>
         <div className="max-w-7xl mx-auto">
           <div className="flex justify-between items-center mb-8">
             <h2 className="text-3xl font-bold text-gray-900">Freelances populaires</h2>
@@ -314,7 +319,7 @@ export default function Home() {
               Voir tous les freelances
             </a>
           </div>
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4 transform transition-all duration-500 ease-in-out">
             {freelances.map((freelance) => (
               <div
                 key={freelance.id}
@@ -346,13 +351,13 @@ export default function Home() {
                     {freelance.skills.map((skill, i) => (
                       <span
                         key={i}
-                        className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm"
+                        className="bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-sm font-medium hover:bg-blue-100 transition-colors duration-200"
                       >
                         {skill}
                       </span>
                     ))}
                   </div>
-                  <a href="#" className="text-blue-600 hover:text-blue-800 font-medium text-sm">
+                  <a href="#" className="text-blue-600 hover:text-blue-800 font-medium text-sm inline-flex items-center group">Voir profil <svg className="w-4 h-4 ml-1 transform group-hover:translate-x-1 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7"/></svg>
                     Voir profil
                   </a>
                 </div>
@@ -365,7 +370,7 @@ export default function Home() {
       {/* Section Avis Utilisateurs */}
       <section className="bg-gray-50 py-16 px-4 md:px-8">
         <div className="max-w-7xl mx-auto text-center">
-          <h2 className="text-3xl font-bold text-gray-900 mb-2">Ce que disent nos utilisateurs</h2>
+          <h2 className="text-3xl font-bold text-gray-900 mb-2 relative after:content-[''] after:block after:w-24 after:h-1 after:bg-blue-600 after:mx-auto after:mt-2">Ce que disent nos utilisateurs</h2>
           <p className="text-gray-600 mb-10">
             Découvrez les expériences de nos clients et freelances
           </p>
@@ -373,7 +378,7 @@ export default function Home() {
             {temoignages.map((avis, index) => (
               <div
                 key={index}
-                className="bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition duration-300 text-left"
+                className="bg-white rounded-lg shadow-sm hover:shadow-xl transform hover:-translate-y-1 transition-all duration-300 p-6 border border-gray-100"
               >
                 <div className="flex items-center gap-4 mb-4">
                   <img
@@ -394,8 +399,9 @@ export default function Home() {
       </section>
 
       {/* Section CTA - Prêt à démarrer */}
-      <section className="bg-blue-600 py-20 px-4">
-        <div className="max-w-4xl mx-auto text-center text-white">
+      <section className="bg-blue-600 py-20 px-4 relative overflow-hidden">
+        <div className="max-w-4xl mx-auto text-center text-white relative z-10">
+          <div className="absolute inset-0 bg-gradient-to-r from-blue-500 to-blue-700 opacity-50 -z-10"></div>
           <h2 className="text-4xl font-bold mb-6">Prêt à démarrer ?</h2>
           <p className="text-xl mb-10">
             Rejoignez notre communauté de freelances et d'entreprises pour collaborer sur des projets passionnants.

@@ -8,8 +8,23 @@ import { toast } from 'react-toastify';
 export default function FreelanceProfileForm() {
   const navigate = useNavigate();
   const location = useLocation();
+  
+  // Fonction pour rediriger vers la page de profil
+  const redirectToProfile = (userData) => {
+    navigate('/profil-freelance', {
+      state: {
+        profile: userData,
+        justUpdated: true
+      },
+      replace: true
+    });
+  };
   const fileInputRef = useRef(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [newSkill, setNewSkill] = useState('');
+  const [newLanguage, setNewLanguage] = useState('');
+  const [selectedLanguageLevel, setSelectedLanguageLevel] = useState('Débutant');
+  const [previewImage, setPreviewImage] = useState(null);
 
   // États pour les champs du formulaire
   const [formData, setFormData] = useState({
@@ -101,11 +116,7 @@ export default function FreelanceProfileForm() {
     }
   }, [location.state]);
 
-  // États pour la gestion des ajouts
-  const [newSkill, setNewSkill] = useState('');
-  const [newLanguage, setNewLanguage] = useState('');
-  const [selectedLanguageLevel, setSelectedLanguageLevel] = useState('Débutant');
-  const [previewImage, setPreviewImage] = useState(null);
+
 
   // Gérer les changements dans les champs de formulaire
   const handleChange = (e) => {
@@ -128,130 +139,203 @@ export default function FreelanceProfileForm() {
     }
   };
 
+  // Valider les données du formulaire
+  const validateFormData = () => {
+    const errors = [];
+
+    if (!formData.firstName) errors.push('Le prénom est requis');
+    if (!formData.lastName) errors.push('Le nom est requis');
+    if (!formData.title) errors.push('Le titre est requis');
+    if (!formData.location) errors.push('La localisation est requise');
+    if (!formData.dailyRate) errors.push('Le taux journalier est requis');
+    if (!formData.about) errors.push('La description est requise');
+
+    if (formData.skills.length === 0) errors.push('Au moins une compétence est requise');
+    if (formData.languages.length === 0) errors.push('Au moins une langue est requise');
+
+    // Validation de la photo de profil
+    if (formData.profilePicture) {
+      const file = formData.profilePicture;
+      if (!file.type.startsWith('image/')) {
+        errors.push('La photo de profil doit être une image valide');
+      }
+      if (file.size > 5 * 1024 * 1024) {
+        errors.push('La taille de la photo ne doit pas dépasser 5MB');
+      }
+    }
+
+    return errors;
+  };
+
+  // Nettoyer et formater les données
+  const cleanFormData = (data) => {
+    return {
+      ...data,
+      firstName: data.firstName?.trim() || '',
+      lastName: data.lastName?.trim() || '',
+      title: data.title?.trim() || '',
+      location: data.location?.trim() || '',
+      dailyRate: data.dailyRate?.trim() || '',
+      about: data.about?.trim() || '',
+      skills: data.skills.filter(skill => skill && (typeof skill === 'string' ? skill.trim() : skill.name?.trim())),
+      languages: data.languages.filter(lang => lang.name?.trim()),
+      education: data.education.filter(edu => edu.diploma?.trim() || edu.school?.trim()),
+      certifications: data.certifications.filter(cert => cert.name?.trim()),
+      portfolioProjects: data.portfolioProjects.filter(proj => proj.url?.trim() || proj.title?.trim())
+    };
+  };
+
   // Soumettre le formulaire
   const handleSubmit = async (e) => {
     e.preventDefault();
     console.log('=== handleSubmit appelé ===');
+    console.log('État initial du formulaire:', formData);
     setIsLoading(true);
 
-    // Vérifier si l'utilisateur est connecté
-    let token = localStorage.getItem('token');
-    console.log('Token brut:', token);
-    
-    // Essayer de parser le token s'il est au format JSON
     try {
-      if (token && (token.startsWith('{') || token.startsWith('"'))) {
-        const parsedToken = JSON.parse(token);
-        console.log('Token parsé:', parsedToken);
-        // Si le token est un objet JSON avec une propriété token, utilisez cette valeur
-        if (typeof parsedToken === 'object' && parsedToken.token) {
-          token = parsedToken.token;
-        } else if (typeof parsedToken === 'string') {
-          token = parsedToken;
-        }
+      console.log('=== Début de la validation ===');
+      // Validation des données
+      const validationErrors = validateFormData();
+      console.log('Erreurs de validation:', validationErrors);
+      if (validationErrors.length > 0) {
+        validationErrors.forEach(error => toast.error(error));
+        setIsLoading(false);
+        return;
       }
-    } catch (e) {
-      console.log('Le token n\'est pas au format JSON');
-    }
-    
-    console.log('Token final à utiliser:', token);
-    
-    if (!token) {
-      toast.error('Veuillez vous connecter pour créer un profil');
-      setIsLoading(false);
-      navigate('/connexion');
-      return;
-    }
 
-    // Obtenir le cookie CSRF
-    try {
+      // Vérifier si l'utilisateur est connecté
+      let token = localStorage.getItem('token');
+      console.log('Token brut:', token);
+      
+      // Nettoyage du token
+      try {
+        if (token && (token.startsWith('{') || token.startsWith('"'))) {
+          const parsedToken = JSON.parse(token);
+          token = typeof parsedToken === 'object' ? parsedToken.token : parsedToken;
+        }
+      } catch (e) {
+        console.log('Le token n\'est pas au format JSON');
+      }
+      
+      console.log('Token final à utiliser:', token);
+      
+      if (!token) {
+        toast.error('Veuillez vous connecter pour créer un profil');
+        navigate('/connexion');
+        return;
+      }
+
+      // Obtenir le cookie CSRF
       await axios.get(`${API_CONFIG.baseURL}/sanctum/csrf-cookie`, {
         withCredentials: true
       });
-    } catch (error) {
-      console.error('Erreur lors de la récupération du cookie CSRF:', error);
-      toast.error('Erreur lors de la connexion au backend');
-      setIsLoading(false);
-      return;
-    }
 
-    console.log('Données du formulaire:', formData);
+      console.log('=== Début du nettoyage des données ===');
+      const cleanedData = cleanFormData(formData);
+      console.log('Données nettoyées:', cleanedData);
 
-    // Préparer les données à envoyer avec des valeurs par défaut pour tous les champs obligatoires
-    const dataToSend = {
-      first_name: formData.firstName || 'Prénom Test',
-      last_name: formData.lastName || 'Nom Test',
-      title: formData.title || 'Titre Test',
-      location: formData.location || 'Localisation Test',
-      daily_rate: formData.dailyRate || '100',
-      about: formData.about || 'Description Test',
-      skills: JSON.stringify(formData.skills),
-      languages: JSON.stringify(formData.languages),
-      education: JSON.stringify(formData.education),
-      certifications: JSON.stringify(formData.certifications),
-      portfolioProjects: JSON.stringify(formData.portfolioProjects)
-    };
-    
-    console.log('=== Préparation des données à envoyer ===');
-    console.log('Données à envoyer:', dataToSend);
+      const formDataToSend = new FormData();
+      
+      formDataToSend.append('first_name', cleanedData.firstName.trim());
+      formDataToSend.append('last_name', cleanedData.lastName.trim());
+      formDataToSend.append('title', cleanedData.title.trim());
+      formDataToSend.append('location', cleanedData.location.trim());
+      formDataToSend.append('daily_rate', cleanedData.dailyRate.trim());
+      formDataToSend.append('about', cleanedData.about.trim());
+      
+      formDataToSend.append('skills', JSON.stringify(cleanedData.skills));
+      formDataToSend.append('languages', JSON.stringify(cleanedData.languages.filter(lang => lang.name.trim())));
+      formDataToSend.append('education', JSON.stringify(cleanedData.education.filter(edu => edu.diploma?.trim() || edu.school?.trim() || edu.description?.trim()).map(edu => ({
+        diploma: edu.diploma || '',
+        school: edu.school || '',
+        year: edu.year || '',
+        description: edu.description || ''
+      }))));
+      formDataToSend.append('certifications', JSON.stringify(cleanedData.certifications.filter(cert => cert.name.trim())));
+      formDataToSend.append('portfolioProjects', JSON.stringify(cleanedData.portfolioProjects.filter(project => project.url.trim()).map(project => ({
+        title: project.title.trim(),
+        description: project.description.trim(),
+        url: project.url.trim(),
+        technologies: project.technologies.filter(tech => tech.trim())
+      }))));
 
-    // Envoyer les données
-    try {
-      const response = await axios.put(`${API_CONFIG.baseURL}/api/profile`, dataToSend, {
+      if (cleanedData.profilePicture) {
+        formDataToSend.append('profile_picture', cleanedData.profilePicture);
+      }
+
+      console.log('=== Tentative d\'envoi des données ===');
+      console.log('URL:', `${API_CONFIG.baseURL}/api/freelance/profile`);
+
+      const response = await axios.post(`${API_CONFIG.baseURL}/api/freelance/profile`, formDataToSend, {
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json',
+          'Content-Type': 'multipart/form-data'
         },
-        withCredentials: true
+        withCredentials: true,
+        transformRequest: [(data) => data],
+        maxBodyLength: Infinity,
+        maxContentLength: Infinity
       });
+
+      console.log('=== Réponse reçue du backend ===');
+      console.log('Status:', response.status);
+      console.log('Data:', response.data);
       
-      console.log('Réponse reçue:', response);
+      if (!response.data.user) {
+        console.error('Pas de données utilisateur dans la réponse');
+        toast.error('Erreur: données de profil manquantes');
+        return;
+      }
       
-      // Stocker les données du profil dans le localStorage
       localStorage.setItem('userProfile', JSON.stringify(response.data.user));
+      console.log('=== Données stockées dans localStorage ===');
       
-      toast.success('Profil mis à jour avec succès');
-      
-      // Rediriger vers la page de profil
-      navigate('/profil-freelance', { 
-        state: { 
-          profile: response.data.user,
-          justUpdated: true
-        } 
+      toast.success('Profil créé avec succès!', {
+        position: 'top-center',
+        autoClose: 2000
       });
+      
+      setTimeout(() => {
+        navigate('/profil-freelance', {
+          state: {
+            profile: response.data.user,
+            justUpdated: true
+          },
+          replace: true
+        });
+      }, 500);
+
     } catch (error) {
       console.error('Erreur complète:', error);
       
-      // Gestion détaillée des erreurs
       if (error.response) {
-        // Le serveur a répondu avec un statut d'erreur
-        if (error.response.status === 422) {
-          // Erreur de validation
-          const validationErrors = error.response.data.errors;
-          Object.values(validationErrors).forEach(error => {
-            toast.error(error[0]);
-          });
-        } else if (error.response.status === 401) {
-          // Non authentifié
-          toast.error('Session expirée. Veuillez vous reconnecter.');
-          navigate('/login');
-        } else if (error.response.status === 500) {
-          // Erreur serveur
-          toast.error('Erreur serveur. Veuillez réessayer plus tard.');
-        } else {
-          toast.error('Erreur lors de la mise à jour du profil');
+        switch (error.response.status) {
+          case 422:
+            const validationErrors = error.response.data.errors;
+            Object.values(validationErrors).forEach(error => {
+              toast.error(Array.isArray(error) ? error[0] : error);
+            });
+            break;
+          case 401:
+            toast.error('Session expirée. Veuillez vous reconnecter.');
+            navigate('/login');
+            break;
+          case 500:
+            toast.error('Erreur serveur. Veuillez réessayer plus tard.');
+            break;
+          default:
+            toast.error(`Erreur ${error.response.status}: ${error.response.data.message || 'Erreur lors de la mise à jour du profil'}`);
         }
       } else if (error.request) {
-        // La requête a été faite mais pas de réponse reçue
         toast.error('Impossible de contacter le serveur. Vérifiez votre connexion.');
       } else {
-        // Erreur lors de la configuration de la requête
-        toast.error('Erreur lors de la préparation de la requête');
+        toast.error('Une erreur inattendue est survenue: ' + error.message);
       }
     } finally {
       setIsLoading(false);
     }
-  };
+  }
 
   // Ajouter un skill
   const addSkill = () => {
@@ -397,12 +481,18 @@ export default function FreelanceProfileForm() {
   const handleProfilePictureChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      setFormData(prev => ({
-        ...prev,
-        profilePicture: file
-      }));
+      // Vérifier le type de fichier
+      if (!file.type.startsWith('image/')) {
+        toast.error('Veuillez sélectionner une image valide');
+        return;
+      }
       
-      // Créer une URL pour prévisualiser l'image
+      // Vérifier la taille du fichier (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error('La taille de l\'image ne doit pas dépasser 5MB');
+        return;
+      }
+      
       const reader = new FileReader();
       reader.onloadend = () => {
         setPreviewImage(reader.result);
@@ -414,6 +504,21 @@ export default function FreelanceProfileForm() {
   // Déclencher le clic sur l'input de fichier
   const triggerFileInput = () => {
     fileInputRef.current.click();
+  };
+
+  // Mettre à jour un projet portfolio
+  const updatePortfolioProject = (index, field, value) => {
+    setFormData(prev => {
+      const updatedProjects = [...prev.portfolioProjects];
+      updatedProjects[index] = {
+        ...updatedProjects[index],
+        [field]: value
+      };
+      return {
+        ...prev,
+        portfolioProjects: updatedProjects
+      };
+    });
   };
 
   
@@ -504,7 +609,7 @@ export default function FreelanceProfileForm() {
                 />
               </div>
               <div>
-                <label htmlFor="dailyRate" className="block text-sm font-medium text-gray-700 mb-1">Tarif journalier (€)</label>
+                <label htmlFor="dailyRate" className="block text-sm font-medium text-gray-700 mb-1">Tarif journalier (USD)</label>
                 <input
                   type="number"
                   id="dailyRate"
@@ -861,84 +966,11 @@ export default function FreelanceProfileForm() {
           </section>
           
           {/* Bouton d'action */}
-          <div className="flex justify-end gap-4">
+          <div className="flex space-x-4 justify-end mt-8">
             <button
               type="button"
-              onClick={async (e) => {
-                e.preventDefault();
-                setIsLoading(true);
-                console.log('=== Vérification de l\'authentification ===');
-                try {
-                  // Récupérer le token actuel
-                  let token = localStorage.getItem('token');
-                  // Essayer de parser le token s'il est au format JSON
-                  try {
-                    if (token && (token.startsWith('{') || token.startsWith('"'))) {
-                      const parsedToken = JSON.parse(token);
-                      if (typeof parsedToken === 'object' && parsedToken.token) {
-                        token = parsedToken.token;
-                      } else if (typeof parsedToken === 'string') {
-                        token = parsedToken;
-                      }
-                    }
-                  } catch (e) {
-                    console.log('Le token n\'est pas au format JSON');
-                  }
-                  
-                  const response = await axios.get(`${API_CONFIG.baseURL}/api/user`, {
-                    headers: {
-                      'Authorization': `Bearer ${token}`,
-                      'Accept': 'application/json'
-                    },
-                    withCredentials: true
-                  });
-                  
-                  console.log('Informations utilisateur:', response.data);
-                  toast.success('Authentification réussie. Utilisateur connecté.');
-                } catch (error) {
-                  console.error('Erreur d\'authentification:', error);
-                  if (error.response && error.response.status === 401) {
-                    toast.error('Votre session a expiré. Veuillez vous reconnecter.');
-                    navigate('/login');
-                  } else {
-                    toast.error('Erreur de vérification de l\'authentification: ' + (error.message || 'Erreur inconnue'));
-                  }
-                } finally {
-                  setIsLoading(false);
-                }
-              }}
-              className="px-6 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors"
-              disabled={isLoading}
-            >
-              Vérifier l'authentification
-            </button>
-            <button
-              type="button"
-              onClick={async (e) => {
-                e.preventDefault();
-                setIsLoading(true);
-                console.log('=== Test de connexion au backend ===');
-                try {
-                  const response = await axios.get(`${API_CONFIG.baseURL}/sanctum/csrf-cookie`, {
-                    withCredentials: true
-                  });
-                  console.log('Réponse du test de connexion:', response);
-                  toast.success('Connexion au backend réussie');
-                } catch (error) {
-                  console.error('Erreur de connexion au backend:', error);
-                  toast.error('Erreur de connexion au backend : ' + (error.message || 'Erreur inconnue'));
-                } finally {
-                  setIsLoading(false);
-                }
-              }}
-              className="px-6 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors"
-              disabled={isLoading}
-            >
-              Tester la connexion
-            </button>
-            <button
-              type="submit"
               onClick={(e) => {
+                e.preventDefault();
                 console.log('=== Bouton cliqué ===');
                 handleSubmit(e);
               }}

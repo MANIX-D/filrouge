@@ -55,16 +55,24 @@ export const AuthProvider = ({ children }) => {
 
   const register = async (userData) => {
     try {
-      const { user } = await authService.register(userData);
+      const response = await authService.register(userData);
+      const { user, token } = response;
+      
+      // Stocker le token
+      localStorage.setItem('token', token);
+      
+      // Mettre à jour l'utilisateur courant
       setCurrentUser({
         id: user.id,
         firstName: user.first_name,
-        email: user.email
+        email: user.email,
+        userType: user.user_type
       });
+      
       return user;
     } catch (error) {
       console.error("Échec de l'enregistrement:", error);
-      return false;
+      throw error; // Propager l'erreur pour la gérer dans le composant
     }
   };
 
