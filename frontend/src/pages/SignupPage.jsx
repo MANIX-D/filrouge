@@ -61,7 +61,7 @@ export default function SignupPage() {
       const userData = await register(registerData);
       console.log('Inscription réussie:', userData);
       
-      // Si l'inscription réussit, on redirige vers la création de profil
+      // Si l'inscription réussit, on redirige vers la page d'acceuil
       if (userType === 'freelance') {
         navigate('/');
       } else {

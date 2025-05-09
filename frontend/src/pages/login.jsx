@@ -134,7 +134,7 @@ export default function Login() {
           </div>
         </form>
 
-        {/* Le reste du composant reste inchangé */}
+        {/* ......*/}
         
       </div>
     </div>

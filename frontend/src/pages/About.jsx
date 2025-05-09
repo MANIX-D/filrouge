@@ -15,10 +15,10 @@ function CountUp({ end, duration = 2000 }) {
       const progress = timestamp - startTime;
       
       // Calculer la valeur actuelle en fonction du temps écoulé
-      const percentage = Math.min(progress / duration, 1);
-      const currentCount = Math.floor(percentage * end);
+      // const percentage = Math.min(progress / duration, 1);
+      // const currentCount = Math.floor(percentage * end);
       
-      setCount(currentCount);
+      // setCount(currentCount);
       
       // Continuer l'animation si elle n'est pas terminée
       if (progress < duration) {
