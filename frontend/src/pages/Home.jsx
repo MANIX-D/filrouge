@@ -1,4 +1,8 @@
 import { useEffect, useState } from 'react';
+import Slider from 'react-slick';
+import { Clock, DollarSign } from 'lucide-react';
+import 'slick-carousel/slick/slick.css';
+import 'slick-carousel/slick/slick-theme.css';
 
 export default function Home() {
   const [isVisible, setIsVisible] = useState(false);
@@ -25,30 +29,76 @@ export default function Home() {
     return () => clearInterval(interval); // Nettoyage
   }, []);
 
-  // Données pour les projets en vedette avec timestamps réels
-  const [projets, setProjets] = useState([
+  // Données des projets
+  const [projets] = useState([
     {
-      titre: "Développement d'une application web e-commerce",
-      description: "Création d'une application web complète avec panier, paiement et gestion des produits.",
-      budget: "500000-1000000 Fcfa",
-      tags: ["React", "Node.js", "MongoDB"],
-      createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), // 2 days ago
+      id: 1,
+      title: 'Site e-commerce pour une boutique locale',
+      description: 'Création d\'un site e-commerce complet avec panier, paiement en ligne, et gestion des commandes',
+      budget: 2750,
+      deadline: '2025-12-15',
+      skills: ['React', 'Node.js', 'MongoDB', 'Stripe'],
+      publishedDate: '2025-05-01',
+      fullDescription: 'Création d\'un site e-commerce complet pour une boutique locale. Le site doit inclure une interface utilisateur intuitive, un système de panier fonctionnel, un processus de paiement sécurisé via Stripe, et un tableau de bord d\'administration pour gérer les produits et les commandes. Le site doit être responsive et optimisé pour les mobiles.'
     },
     {
-      titre: "Design d'une identité visuelle pour startup",
-      description: "Création de logo, charte graphique et éléments visuels pour une startup dans le domaine de la santé.",
-      budget: "300000-500000 Fcfa",
-      tags: ["Design graphique", "Branding", "Illustrator"],
-      createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000), // 3 days ago
+      id: 2,
+      title: 'Application mobile de livraison de repas',
+      description: 'Développement d\'une application mobile pour un service de livraison de repas local avec géolocalisation',
+      budget: 3850,
+      deadline: '2025-11-30',
+      skills: ['React Native', 'Firebase', 'Google Maps API'],
+      publishedDate: '2025-04-20',
+      fullDescription: 'Développement d\'une application mobile native pour iOS et Android destinée à un service de livraison de repas local. L\'application doit permettre aux utilisateurs de parcourir les restaurants à proximité, commander des repas, suivre la livraison en temps réel grâce à la géolocalisation, et payer directement via l\'application.'
     },
     {
-      titre: "Rédaction de contenu SEO pour site web",
-      description: "Rédaction de 20 articles optimisés SEO pour un site web dans le domaine de la technologie.",
-      budget: "150000-250000 Fcfa",
-      tags: ["Rédaction web", "SEO", "Marketing de contenu"],
-      createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000), // 1 day ago
+      id: 3,
+      title: 'Identité visuelle d\'une entreprise',
+      description: 'Création d\'un nouveau logo, charte graphique et templates pour une startup dans le domaine de la santé',
+      budget: 1320,
+      deadline: '2025-10-15',
+      skills: ['Design graphique', 'Illustrator', 'Photoshop'],
+      publishedDate: '2025-04-20',
+      fullDescription: 'Refonte complète de l\'identité visuelle d\'une startup innovante dans le secteur de la santé. Le projet comprend la création d\'un nouveau logo moderne et mémorable, une charte graphique complète, et divers templates pour les supports de communication (cartes de visite, papier à en-tête, présentations PowerPoint, etc.).'
     },
+    {
+      id: 4,
+      title: 'Développement d\'un tableau de bord',
+      description: 'Création d\'un tableau de bord interactif pour visualiser les données de vente et marketing d\'une entreprise',
+      budget: 1980,
+      deadline: '2025-11-10',
+      skills: ['React', 'D3.js', 'Node.js', 'MongoDB'],
+      publishedDate: '2025-04-15',
+      fullDescription: 'Développement d\'un tableau de bord analytique interactif permettant de visualiser et d\'analyser les données de vente et de marketing d\'une entreprise. L\'interface doit être intuitive avec des graphiques dynamiques, des filtres personnalisables, et des rapports exportables. Le dashboard doit être accessible via un navigateur web.'
+    }
   ]);
+
+  // Configuration du carrousel
+  const sliderSettings = {
+    dots: true,
+    infinite: true,
+    speed: 500,
+    slidesToShow: 2,
+    slidesToScroll: 1,
+    autoplay: false,
+    arrows: true,
+    responsive: [
+      {
+        breakpoint: 1024,
+        settings: {
+          slidesToShow: 2,
+          slidesToScroll: 1,
+        }
+      },
+      {
+        breakpoint: 768,
+        settings: {
+          slidesToShow: 1,
+          slidesToScroll: 1
+        }
+      }
+    ]
+  };
 
   // Fonction pour formater les dates en temps relatif
   const formatRelativeTime = (date) => {
@@ -207,6 +257,48 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Section des projets en vedette */}
+      <section className="py-16 bg-gray-50">
+        <div className="max-w-7xl mx-auto px-4">
+          <h2 className="text-3xl font-bold text-gray-900 mb-8">Projets en vedette</h2>
+          <Slider {...sliderSettings} className="-mx-2">
+            {projets.map((projet) => (
+              <div key={projet.id} className="px-2">
+                <div className="bg-white rounded-lg shadow-sm p-6 h-full border border-gray-200 hover:border-blue-500 transition-colors duration-200">
+                  <div className="flex justify-between items-start mb-4">
+                    <h3 className="text-xl font-semibold text-gray-900 mb-2 flex-grow">{projet.title}</h3>
+                    <span className="bg-blue-100 text-blue-800 text-sm font-medium px-3 py-1 rounded-full flex items-center gap-1">
+                      <DollarSign size={16} />
+                      {projet.budget}$
+                    </span>
+                  </div>
+                  <p className="text-gray-600 mb-4 line-clamp-2">{projet.description}</p>
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    {projet.skills.map((skill, index) => (
+                      <span key={index} className="bg-gray-100 text-gray-700 text-sm px-3 py-1 rounded-full">
+                        {skill}
+                      </span>
+                    ))}
+                  </div>
+                  <div className="flex items-center justify-between text-sm text-gray-500 mt-4 pt-4 border-t">
+                    <div className="flex items-center gap-1">
+                      <Clock size={16} />
+                      Échéance : {new Date(projet.deadline).toLocaleDateString()}
+                    </div>
+                    <button 
+                      className="text-blue-600 hover:text-blue-800 font-medium"
+                      onClick={() => window.location.href = '/projet'}
+                    >
+                      Voir plus
+                    </button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </Slider>
+        </div>
+      </section>
+
       {/* Section Comment ça fonctionne */}
       <section className="py-16 bg-white">
         <div className="max-w-6xl mx-auto px-4 text-center">
@@ -264,36 +356,36 @@ export default function Home() {
       </section>
 
       {/* Section Projets en vedette - avec timestamps dynamiques */}
-      <section className="bg-gray-50 py-12 px-4 md:px-8">
+      {/* <section className="bg-gray-50 py-12 px-4 md:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="flex justify-between items-center mb-8">
             <h2 className="text-3xl font-bold text-gray-800">Projets en vedette</h2>
-            <a href="#" className="text-blue-600 font-medium hover:underline">
+            <a href="/projet" className="text-blue-600 font-medium hover:underline">
               Voir tous les projets
             </a>
           </div>
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {projets.map((projet, index) => (
+            {projets.map((projet) => (
               <div
-                key={index}
+                key={projet.id}
                 className="bg-white rounded-xl shadow-md hover:shadow-lg hover:-translate-y-1 transition-all duration-300 p-6 flex flex-col justify-between"
               >
                 <div>
                   <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                    {projet.titre}
+                    {projet.title}
                   </h3>
                   <p className="text-gray-600 mb-4">{projet.description}</p>
                   <p className="font-semibold text-gray-800 mb-3">
                     Budget:{" "}
-                    <span className="font-normal text-gray-700">{projet.budget}</span>
+                    <span className="font-normal text-gray-700">{projet.budget}$</span>
                   </p>
                   <div className="flex flex-wrap gap-2 mb-4">
-                    {projet.tags.map((tag, i) => (
+                    {projet.skills.map((skill, i) => (
                       <span
                         key={i}
                         className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm"
                       >
-                        {tag}
+                        {skill}
                       </span>
                     ))}
                   </div>
@@ -308,7 +400,7 @@ export default function Home() {
             ))}
           </div>
         </div>
-      </section>
+      </section> */}
       
       {/* Section Freelances populaires - avec notes dynamiques */}
       <section className={`py-16 px-4 md:px-8 transition-opacity duration-1000 ${isVisible ? 'opacity-100' : 'opacity-0'}`}>
