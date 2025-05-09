@@ -71,8 +71,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/profile/toggle-availability', [ProfileController::class, 'toggleAvailability']);
 
     // Routes pour le profil freelance
-    Route::get('/freelance/profile/create', [App\Http\Controllers\FreelanceProfileController::class, 'create']);
-    Route::post('/freelance/profile', [App\Http\Controllers\FreelanceProfileController::class, 'store']);
+    Route::get('/freelance/profile/create', [App\Http\Controllers\API\V1\FreelanceProfileController::class, 'create']);
+    Route::post('/freelance/profile', [App\Http\Controllers\API\V1\FreelanceProfileController::class, 'store']);
 });
 
 Route::get('/profile/{id}', function ($id) {

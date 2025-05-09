@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\API\V1;
 
+use App\Http\Controllers\Controller;
 use App\Models\User;
 use App\Models\Skill;
 use App\Models\Language;
@@ -10,7 +11,8 @@ use App\Models\Certification;
 use App\Models\PortfolioProject;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
 
 class FreelanceProfileController extends Controller
 {
@@ -42,105 +44,133 @@ class FreelanceProfileController extends Controller
         return view('freelance.profile-form', ['user' => $user]);
     }
 
-    /**
-     * Stocker les données du profil freelance.
-     */
     public function store(Request $request)
     {
-        $user = Auth::user();
+        try {
+            DB::beginTransaction();
+            
+            $user = Auth::user();
 
-        // Validation des données
-        $validated = $request->validate([
-            'firstName' => 'required|string|max:255',
-            'lastName' => 'required|string|max:255',
-            'professionalTitle' => 'required|string|max:255',
-            'bio' => 'required|string',
-            'profilePicture' => 'nullable|image|max:2048',
-            'skills' => 'nullable|array',
-            'languages' => 'nullable|array',
-            'education' => 'nullable|array',
-            'certifications' => 'nullable|array',
-            'portfolioProject' => 'nullable|array',
-        ]);
+            // Validation des données
+            $validated = $request->validate([
+                'first_name' => 'required|string|max:255',
+                'last_name' => 'required|string|max:255',
+                'title' => 'required|string|max:255',
+                'location' => 'nullable|string|max:255',
+                'daily_rate' => 'nullable|string',
+                'about' => 'nullable|string',
+                'skills' => 'nullable|string',
+                'languages' => 'nullable|string',
+                'education' => 'nullable|string',
+                'certifications' => 'nullable|string',
+                'portfolioProjects' => 'nullable|string'
+            ]);
 
-        // Mise à jour des informations de l'utilisateur
-        $user->name = $validated['firstName'] . ' ' . $validated['lastName'];
-        $user->professional_title = $validated['professionalTitle'];
-        $user->bio = $validated['bio'];
-        $user->user_type = 'freelance';
+            Log::info('Données validées:', $validated);
 
-        // Traitement de l'image de profil
-        if ($request->hasFile('profilePicture')) {
-            // Supprimer l'ancienne image si elle existe
-            if ($user->profile_picture) {
-                Storage::delete('public/profile_pictures/' . $user->profile_picture);
-            }
+            // Mise à jour des informations de l'utilisateur
+            $user->update([
+                'first_name' => $validated['first_name'],
+                'last_name' => $validated['last_name'],
+                'professional_title' => $validated['title'],
+                'bio' => $validated['about'],
+                'location' => $validated['location'],
+                'daily_rate' => $validated['daily_rate'],
+                'user_type' => 'freelance'
+            ]);
 
-            // Stocker la nouvelle image
-            $imageName = time() . '.' . $request->profilePicture->extension();
-            $request->profilePicture->storeAs('public/profile_pictures', $imageName);
-            $user->profile_picture = $imageName;
-        }
-
-        $user->save();
-
-        // Gestion des compétences
-        $user->skills()->delete(); // Supprimer les anciennes compétences
-        if (!empty($validated['skills'])) {
-            foreach ($validated['skills'] as $skill) {
-                $user->skills()->create(['name' => $skill]);
-            }
-        }
-
-        // Gestion des langues
-        $user->languages()->delete(); // Supprimer les anciennes langues
-        if (!empty($validated['languages'])) {
-            foreach ($validated['languages'] as $language) {
-                $user->languages()->create([
-                    'name' => $language['name'],
-                    'level' => $language['level']
-                ]);
-            }
-        }
-
-        // Gestion des formations
-        $user->education()->delete(); // Supprimer les anciennes formations
-        if (!empty($validated['education'])) {
-            foreach ($validated['education'] as $edu) {
-                $user->education()->create([
-                    'diploma' => $edu['diploma'],
-                    'school' => $edu['school'],
-                    'year' => $edu['year'],
-                    'description' => $edu['description'] ?? null
-                ]);
-            }
-        }
-
-        // Gestion des certifications
-        $user->certifications()->delete(); // Supprimer les anciennes certifications
-        if (!empty($validated['certifications'])) {
-            foreach ($validated['certifications'] as $cert) {
-                $user->certifications()->create([
-                    'name' => $cert['name'],
-                    'organization' => $cert['organization'],
-                    'year' => $cert['year'],
-                    'url' => $cert['url'] ?? null
-                ]);
-            }
-        }
-
-        // Gestion des liens portfolio
-        $user->portfolioProject()->delete(); // Supprimer les anciens liens
-        if (!empty($validated['portfolioProject'])) {
-            foreach ($validated['portfolioProject'] as $link) {
-                if (!empty($link)) {
-                    $user->portfolioProject()->create(['url' => $link]);
+            // Traitement des compétences
+            if (isset($validated['skills'])) {
+                $skills = json_decode($validated['skills'], true) ?? [];
+                $user->skills()->delete();
+                foreach ($skills as $skillName) {
+                    if (!empty($skillName)) {
+                        $user->skills()->create(['name' => $skillName]);
+                    }
                 }
             }
-        }
 
-        return redirect()->route('freelance.profile.show', $user->id)
-            ->with('success', 'Votre profil freelance a été créé avec succès !');
+            // Traitement des langues
+            if (isset($validated['languages'])) {
+                $languages = json_decode($validated['languages'], true) ?? [];
+                $user->languages()->delete();
+                foreach ($languages as $language) {
+                    if (!empty($language['name'])) {
+                        $user->languages()->create([
+                            'name' => $language['name'],
+                            'level' => $language['level']
+                        ]);
+                    }
+                }
+            }
+
+            // Traitement des formations
+            if (isset($validated['education'])) {
+                $education = json_decode($validated['education'], true) ?? [];
+                $user->education()->delete();
+                foreach ($education as $edu) {
+                    if (!empty($edu['diploma']) || !empty($edu['school'])) {
+                        $user->education()->create([
+                            'diploma' => $edu['diploma'],
+                            'school' => $edu['school'],
+                            'year' => $edu['year'],
+                            'description' => $edu['description'] ?? null
+                        ]);
+                    }
+                }
+            }
+
+            // Traitement des certifications
+            if (isset($validated['certifications'])) {
+                $certifications = json_decode($validated['certifications'], true) ?? [];
+                $user->certifications()->delete();
+                foreach ($certifications as $cert) {
+                    if (!empty($cert['name'])) {
+                        $user->certifications()->create([
+                            'name' => $cert['name'],
+                            'organization' => $cert['organization'],
+                            'year' => $cert['year'],
+                            'url' => $cert['url'] ?? null
+                        ]);
+                    }
+                }
+            }
+
+            // Traitement des projets portfolio
+            if (isset($validated['portfolioProjects'])) {
+                $portfolioProjects = json_decode($validated['portfolioProjects'], true) ?? [];
+                $user->portfolioProjects()->delete();
+                foreach ($portfolioProjects as $project) {
+                    if (!empty($project['url'])) {
+                        $portfolioProject = $user->portfolioProjects()->create([
+                            'title' => $project['title'] ?? '',
+                            'description' => $project['description'] ?? '',
+                            'url' => $project['url']
+                        ]);
+                    }
+                }
+            }
+
+            DB::commit();
+
+            // Charger les relations pour la réponse
+            $user->load(['skills', 'languages', 'education', 'certifications', 'portfolioProjects']);
+
+            return response()->json([
+                'message' => 'Profil mis à jour avec succès',
+                'user' => $user
+            ], 200);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Erreur lors de la création du profil freelance: ' . $e->getMessage());
+            Log::error('Stack trace: ' . $e->getTraceAsString());
+            
+            return response()->json([
+                'message' => 'Erreur lors de la création du profil',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
     /**

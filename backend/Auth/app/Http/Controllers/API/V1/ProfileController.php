@@ -45,6 +45,7 @@ class ProfileController extends Controller
             'daily_rate' => $user->daily_rate,
             'about' => $user->about,
             'is_available' => $user->is_available,
+            'created_at' => $user->created_at->format('Y-m-d'),
             'skills' => $user->skills,
             'languages' => $user->languages,
             'education' => $user->education,
